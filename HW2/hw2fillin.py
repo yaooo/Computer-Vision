@@ -27,6 +27,10 @@ def click_and_keep(event, x, y, flags, param):
             print(x, y)
             lx = x
             ly = y
+            print(refPt)
+            if(len(refPt) == 8):
+                refPt = reorder_pairs(refPt)
+                print("refPt:", refPt)
 
 
 # construct the Matrix A
@@ -36,16 +40,38 @@ def get_Ai(u,v, u1, v1):
 
 
 def reorder_pairs(paris):
+    p = np.reshape(paris, [4, 2]).copy()
     l2 = []
-    result = paris.copy()
-    for i in paris:
-        l2 = [l2, i[0]^2+i[1]^2]
-    min = l2.index(min(l2))
-    max = l2.index(max(l2))
-    result[0] = paris[min]
-    result[1] = paris[max]
-    paris.pop([min,max])
-    paris[0][0]
+    result = []
+    for i in range(0,4):
+        n = np.dot(p[i], p[i])
+        print(n)
+        l2.append(int(n))
+
+    print("L2", l2)
+    min1 = l2.index(min(l2))
+    max1 = l2.index(max(l2))
+    result.append(list(p[min1]))
+
+    print(str(max1))
+    t = [0,1,2,3]
+    t.remove(min1)
+    t.remove(max1)
+    x = t[0]
+    y = t[1]
+
+    if(p[x][0] < p[y][0]):
+        result.append(list(p[x]))
+        result.append(list(p[max1]))
+        result.append(list(p[y]))
+    else:
+        result.append(list(p[y]))
+        result.append(list(p[max1]))
+        result.append(list(p[x]))
+
+    tmp = [item for sublist in result for item in sublist]
+
+    return tmp
 
 
 def concate_A(u, v, u1, v1):
