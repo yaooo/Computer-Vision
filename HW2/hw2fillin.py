@@ -2,6 +2,7 @@
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
+from matplotlib import collections as mc
 
 # import modules used here -- sys is a very standard one
 import sys
@@ -24,10 +25,10 @@ def click_and_keep(event, x, y, flags, param):
         if(len(refPt) < 8):
             refPt.append(x)
             refPt.append(y)
-            print(x, y)
+            # print(x, y)
             lx = x
             ly = y
-            print(refPt)
+            # print(refPt)
             if(len(refPt) == 8):
                 refPt = reorder_pairs(refPt)
                 print("refPt:", refPt)
@@ -48,12 +49,12 @@ def reorder_pairs(paris):
         print(n)
         l2.append(int(n))
 
-    print("L2", l2)
+    # print("L2", l2)
     min1 = l2.index(min(l2))
     max1 = l2.index(max(l2))
     result.append(list(p[min1]))
 
-    print(str(max1))
+    # print(str(max1))
     t = [0,1,2,3]
     t.remove(min1)
     t.remove(max1)
@@ -80,7 +81,7 @@ def concate_A(u, v, u1, v1):
         a = get_Ai(u[i], v[i], u1[i], v1[i])
         final.append(a[0])
         final.append(a[1])
-    print("final:", final)
+    # print("final:", final)
     return final
 
 
@@ -120,13 +121,13 @@ def display_new_img(name):
     v1 = [0, 199, 199, 0]
     final_A = concate_A(u, v, u1, v1)
     final_A = np.vstack(final_A)
-    print(final_A)
+    # print(final_A)
     u, s, vh = np.linalg.svd(final_A)
     v = np.array([vh[8][0:3], vh[8][3:6], vh[8][6:]])
     v = v
     h_inverse = np.linalg.inv(v)
 
-    print(h_inverse)
+    # print(h_inverse)
 
     width, height = (300, 200)
 
@@ -145,9 +146,11 @@ def display_new_img(name):
             # print(int(t[0]), int(t[1]))
             image2[y][x] = image[y1,x1]
 
-    #
-    cv2.imshow("Transformed image", image2)
+
     cv2.imwrite("out.png", image2)
+    cv2.imshow("Transformed image", cv2.imread('out.png', 1))
+    cv2.waitKey(0)
+    cv2.destroyWindow('Finish Problem3')
     # image3 = cv2.imread('foo.png', 1)
 
 
@@ -165,14 +168,44 @@ if __name__ == '__main__':
         refPt = np.reshape(refPt, (4, 2))
 
     display_new_img(name)
-# Select End PoinTts of foreshortened window or billboard
 
-# Set the corresponding point in the frontal view as
+    # For Problem 4:
+    print('problem 4')
+    House_3d = np.asarray(
+        [[0, 0, 0], [4, 0, 0], [4, 4, 0], [0, 4, 0], [0, 0, 2], [4, 0, 2], [4, 4, 2], [0, 4, 2], [2, 1, 3], [2, 3, 3]])
+    """fig = plt.figure()
+    ax = fig.add_subplot(121)
+    X = House_3d.T[0]
+    Y = House_3d.T[1]
+    Z = House_3d.T[2]
 
-# Estimate the homography
+    ax.plot_wireframe(X, Y, Z, rstride=10, cstride=10)
+    """
+    M_ext = np.asarray([[-0.707, 0.707, 0, 3], [0.707, -0.707, 0, 0.5], [0, 0, 1, 3]])
+    M_int = np.asarray([[100, 0, 200], [-0, 100, 200], [0, 0, 1]])
+    M = np.matmul(M_int, M_ext)
 
-# Warp the image
-# cv.Remap(src, dst, mapx, mapy, flags=CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS, fillval=(0, 0, 0, 0))
+    Pt_homo = []
+    Pt_2d = []
+    for Pt_3d in House_3d:
+        Pt_3d = np.concatenate((Pt_3d, [1]), axis=0)
+        # For some reason(matrix class), Pt_homo[0]won't return a 1d array
+        Pt_homo = np.matmul(M, Pt_3d)
+        Pt_2d.append((float(Pt_homo[0]) / Pt_homo[2], float(Pt_homo[1]) / Pt_homo[2]))
+    Pt_count = 10
+    L_Clct = []
+    # Traverse and connect each pairs of points in Pt_2d
+    for i in range(0, Pt_count - 2):
+        for j in range(i + 1, Pt_count - 1):
+            # If two checked points are not same, connect them
+            if (Pt_2d[i] != Pt_2d[j]):
+                L_Clct.append([Pt_2d[i], Pt_2d[j]])
 
-# Crop the image
+    # print(L_Clct)
+    lc = mc.LineCollection(L_Clct)
+    fig, ax = plt.subplots()
+    ax.add_collection(lc)
+
+    ax.autoscale()
+    plt.show()
 
