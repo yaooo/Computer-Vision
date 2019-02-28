@@ -169,6 +169,7 @@ if __name__ == '__main__':
 
     display_new_img(name)
 
+
     # For Problem 4:
     print('problem 4')
     House_3d = np.asarray(
